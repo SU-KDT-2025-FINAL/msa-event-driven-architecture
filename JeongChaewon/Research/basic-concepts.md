@@ -88,7 +88,7 @@
 
 이런 기본 개념들을 바탕으로 다음과 같은 주제들을 더 깊이 탐구할 수 있습니다:
 
-- 이벤트 소싱(Event Sourcing) 패턴
+- 이벤트 소싱(Event Sourcing)패턴
 - CQRS(Command Query Responsibility Segregation)
 - Saga 패턴을 통한 분산 트랜잭션
 - 메시지 브로커 선택과 비교
