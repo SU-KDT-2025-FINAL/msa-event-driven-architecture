@@ -76,7 +76,7 @@ public class OrderCreatedEvent {
   "type": "object",
   "properties": {
     "orderId": { "type": "string" },
-    "userId": { "type": "string" },
+    "userId": { "type": "string" },                
     "createdAt": { "type": "string", "format": "date-time" }
   },
   "required": ["orderId", "userId", "createdAt"]
