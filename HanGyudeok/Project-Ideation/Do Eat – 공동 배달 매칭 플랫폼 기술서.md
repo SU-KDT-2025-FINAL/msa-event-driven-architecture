@@ -77,6 +77,139 @@
 
 ---
 
+## 5.1 CI/CD 파이프라인 아키텍처
+
+### 🚀 추천 CI/CD 도구 조합
+
+| 단계 | 도구 | 역할 | 선택 이유 |
+|------|------|------|-----------|
+| **소스 관리** | `GitHub` | 코드 저장소 | 팀 협업, PR 리뷰, 브랜치 보호 |
+| **빌드/테스트** | `GitHub Actions` | CI 파이프라인 | GitHub 통합, 무료 크레딧, YAML 기반 |
+| **컨테이너화** | `Docker` | 이미지 빌드 | 표준화, 멀티스테이지 빌드 |
+| **레지스트리** | `GitHub Container Registry` | 이미지 저장 | GitHub 통합, 보안 스캔 |
+| **배포** | `ArgoCD` | GitOps 배포 | 선언적 배포, 자동 동기화 |
+| **오케스트레이션** | `Kubernetes` | 컨테이너 오케스트레이션 | 확장성, 서비스 메시 지원 |
+| **모니터링** | `Prometheus + Grafana` | 메트릭 수집/시각화 | 오픈소스, 커스터마이징 |
+| **로깅** | `ELK Stack` | 로그 집계 | 실시간 분석, 검색 기능 |
+| **보안** | `Trivy` | 취약점 스캔 | 컨테이너, 코드 보안 검사 |
+
+### 🔄 CI/CD 파이프라인 플로우
+
+```yaml
+# .github/workflows/ci-cd.yml 예시
+name: Do Eat CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Tests
+        run: |
+          ./gradlew test
+          ./gradlew integrationTest
+  
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+  
+  build-and-push:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push Docker images
+        run: |
+          docker build -t ghcr.io/doeat/user-service:${{ github.sha }} ./user-service
+          docker push ghcr.io/doeat/user-service:${{ github.sha }}
+```
+
+### 🎯 GitOps 배포 전략
+
+#### 환경별 배포 전략
+- **Development**: `develop` 브랜치 → 자동 배포
+- **Staging**: `main` 브랜치 → 수동 승인 후 배포  
+- **Production**: `release/*` 태그 → 수동 승인 + 롤백 준비
+
+#### ArgoCD Application 예시
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: doeat-user-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/doeat/k8s-manifests
+    targetRevision: HEAD
+    path: user-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: doeat-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+```
+
+### 📊 모니터링 & 관찰성
+
+#### 메트릭 수집
+- **Application Metrics**: Spring Boot Actuator + Micrometer
+- **Infrastructure Metrics**: Node Exporter + cAdvisor
+- **Business Metrics**: 커스텀 메트릭 (매칭 성공률, 주문 완료율)
+
+#### 로그 전략
+- **Structured Logging**: JSON 포맷으로 통일
+- **Centralized Logging**: Fluentd → Elasticsearch
+- **Log Correlation**: Trace ID 기반 요청 추적
+
+#### 알림 설정
+- **Slack Integration**: 배포 성공/실패, 에러 알림
+- **PagerDuty**: P0/P1 이슈 시 즉시 알림
+- **Grafana Alerts**: 임계값 기반 자동 알림
+
+### 🔒 보안 강화
+
+#### 컨테이너 보안
+- **Image Scanning**: Trivy로 취약점 사전 검사
+- **Runtime Security**: Falco로 이상 행동 탐지
+- **Secrets Management**: Kubernetes Secrets + Sealed Secrets
+
+#### 네트워크 보안
+- **Service Mesh**: Istio로 서비스 간 통신 제어
+- **Network Policies**: Pod 간 통신 제한
+- **TLS**: 모든 서비스 간 mTLS 적용
+
+### 🚀 성능 최적화
+
+#### 빌드 최적화
+- **Multi-stage Docker**: 빌드 레이어 최소화
+- **Build Cache**: GitHub Actions 캐시 활용
+- **Parallel Jobs**: 독립적인 서비스 병렬 빌드
+
+#### 배포 최적화
+- **Blue-Green Deployment**: 무중단 배포
+- **Rolling Updates**: 점진적 업데이트
+- **Health Checks**: Readiness/Liveness Probe
+
+---
+
 ## 6. 기대 효과
 
 | 항목        | 내용                        |
