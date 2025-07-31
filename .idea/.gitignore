@@ -6,3 +6,8 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+
+# 스터디 내용과 맞지 않음
+/Users/lhj/Desktop/Workspace/msa-event-driven-architecture/Hyeongjoon/Research/Terraform-Infrastructure-as-Code-가이드.md
+/Users/lhj/Desktop/Workspace/msa-event-driven-architecture/Hyeongjoon/Research/Kubernetes-EKS-클러스터-가이드.md
+/Users/lhj/Desktop/Workspace/msa-event-driven-architecture/Hyeongjoon/Research/데이터베이스-S3-하이브리드-스토리지-전략.md
